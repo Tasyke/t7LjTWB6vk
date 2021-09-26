@@ -79,8 +79,8 @@ button:hover {
             <div class="FormContent">
 
 
-                <input type="text" placeholder="Откуда?" value="ss">
-                <input type="text" placeholder="Куда?" id="PlaceTo" value = " ">
+                <input type="text" placeholder="Откуда?" value="">
+                <input type="text" placeholder="Куда?" id="PlaceTo" value = "">
 
                 <div class="buttons">
                     <button><svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,7 +112,7 @@ button:hover {
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/graphhopper-js-api-client/dist/graphhopper-client.js"></script>
-
+<script src ="leaflet-heat.js" ></script>
 
 
 </script>
@@ -130,23 +130,23 @@ button:hover {
     start = [0,0];
     end = [0,0];
     Areas = '37.559460,55.761761,50; 37.581631,55.759846,50; 37.560484,55.734856,50; 37.616016, 55.627320,50; 37.727268, 55.710334,50; 37.695061, 55.772072,50; 37.545168, 55.712137,50; 37.573039,55.821132,50; 37.607412,55.821674,50; 37.600524,55.792680,50; 37.629907,55.754743,50; 37.639188,55.744083,50';
-
+    //Areas = "37.559460,55.761761,10;"
     Type = 'Foot';
 
-    if("geolocation" in navigator){
-       navigator.geolocation.getCurrentPosition(function(position){
-           console.log(position.coords.latitude,position.coords.longitude)
-           wayCoords.push([position.coords.latitude,position.coords.longitude])
-           L.marker([position.coords.latitude,position.coords.longitude],
-           {
-               color:'red',
-               draggable: true
-           }).addTo(map);
-       });
-    }
-    else{
-       console.log("you don't have any location")
-    }
+    // if("geolocation" in navigator){
+    //    navigator.geolocation.getCurrentPosition(function(position){
+    //        console.log(position.coords.latitude,position.coords.longitude)
+    //        wayCoords.push([position.coords.latitude,position.coords.longitude])
+    //        L.marker([position.coords.latitude,position.coords.longitude],
+    //        {
+    //            color:'red',
+    //            draggable: true
+    //        }).addTo(map);
+    //    });
+    // }
+    // else{
+    //    console.log("you don't have any location")
+    // }
 
     var markers = new Array();
     var clickCount = 0;
@@ -156,7 +156,7 @@ button:hover {
         L.marker([e.latlng.lat,e.latlng.lng],
                 {
                     color:'red',
-                    draggable: true
+                    draggable: false
                 }).addTo(map);
         if(clickCount == 0){
           clickCount = clickCount + 1;
@@ -165,6 +165,7 @@ button:hover {
         else {
           clickCount = clickCount -1;
           end = [e.latlng.lat,e.latlng.lng];
+
           find_route(start,end,Areas,Type);
         }
         PlaceTo.Value = e.latlng.lat;
@@ -187,7 +188,7 @@ button:hover {
                                     [55.754743, 37.629907,4],
                                     [55.744083, 37.639188,10]],
                                     {
-                                    radius: 50,
+                                    radius: 25,
                                     maxZoom:20,
                                     minOpacity: 0.8,
                                     gradient: {0.2: 'green', 0.7: 'yellow', 0.9: 'red'}
@@ -210,15 +211,23 @@ function find_route(LatALt1,LatALt2,block,vehicleType) {
     //var ghRouting = new GraphHopperRouting({key: defaultKey, host: host, vehicle: profile, elevation: false});
 
     // Setup your own Points
-    ghRouting.addPoint(new GHInput( LatALt1[1],LatALt1[0]));
-    ghRouting.addPoint(new GHInput( LatALt2[1], LatALt2[0]));
+    ghRouting.addPoint(new GHInput(LatALt1[0],LatALt1[1]));
+    ghRouting.addPoint(new GHInput(LatALt2[0], LatALt2[1]));
       console.log(block)
     ghRouting.doRequest({ch: {disable: true}, block_area: block})
     .then(function(json){
        // Add your own result handling here
-      console.log(json['paths'][0]['points']['coordinates']);
-       var polyline = L.polyline(json['paths'][0]['points']['coordinates'], {color: 'red'}).addTo(map);
-       map.fitBounds(polyline.getBounds());
+       var lines = json['paths'][0]['points']['coordinates'];
+       var new_lines = [];
+       for (let i = 0; i < lines.length; i++) {
+        
+        new_lines.push([lines[i][1],lines[i][0]]);
+        };
+        //console.log(new_lines);
+        L.polyline(new_lines, {color: 'red'}).addTo(map);
+
+       
+ 
     })
     .catch(function(err){
        console.error(err.message);
