@@ -13,8 +13,6 @@
         .FormCard {
   font-family: 'Roboto', sans-serif;
   background-color: #fff;
-  margin-top: 20%;
-  margin-left: 10%;
   border-radius: 20px !important;
 
   -webkit-box-shadow: 0 1px 4px 0 rgba(0,0,0,0.37);
@@ -81,8 +79,8 @@ button:hover {
             <div class="FormContent">
 
 
-                <input type="text" placeholder="Откуда?">
-                <input type="text" placeholder="Куда?">
+                <input type="text" placeholder="Откуда?" value="ss">
+                <input type="text" placeholder="Куда?" id="PlaceTo" value = " ">
 
                 <div class="buttons">
                     <button><svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -106,22 +104,6 @@ button:hover {
 
                     </button>
                 </div>
-
-                <div id="options">
-                    <span id="profiles">
-
-                    </span>
-                </div>
-                <form id="locationform">
-
-                    <div id="locationpoints">
-                        <div id="x_pointAdd" class="pointAdd"><img src="img/point_add.png"/></div>
-                    </div>
-                    <div class="clear"></div>
-                    <input id="searchButton" type="submit" value="Search">
-                </form>
-
-
             </div>
         </div>
     </body>
@@ -130,6 +112,7 @@ button:hover {
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/graphhopper-js-api-client/dist/graphhopper-client.js"></script>
+
 
 
 </script>
@@ -144,45 +127,80 @@ button:hover {
     });
 
     osm.addTo(map);
+    start = [0,0];
+    end = [0,0];
+    Areas = '37.559460,55.761761,50; 37.581631,55.759846,50; 37.560484,55.734856,50; 37.616016, 55.627320,50; 37.727268, 55.710334,50; 37.695061, 55.772072,50; 37.545168, 55.712137,50; 37.573039,55.821132,50; 37.607412,55.821674,50; 37.600524,55.792680,50; 37.629907,55.754743,50; 37.639188,55.744083,50';
 
-    //if("geolocation" in navigator){
-    //    navigator.geolocation.getCurrentPosition(function(position){
-    //        console.log(position.coords.latitude,position.coords.longitude)
-    //        wayCoords.push([position.coords.latitude,position.coords.longitude])
-    //        L.marker([position.coords.latitude,position.coords.longitude],
-    //        {
-    //            color:'red',
-    //            draggable: true
-    //        }).addTo(map);
-    //    });
-    //}
-    //else{
-    //    console.log("you don't have any location")
-    //}
+    Type = 'Foot';
 
+    if("geolocation" in navigator){
+       navigator.geolocation.getCurrentPosition(function(position){
+           console.log(position.coords.latitude,position.coords.longitude)
+           wayCoords.push([position.coords.latitude,position.coords.longitude])
+           L.marker([position.coords.latitude,position.coords.longitude],
+           {
+               color:'red',
+               draggable: true
+           }).addTo(map);
+       });
+    }
+    else{
+       console.log("you don't have any location")
+    }
+
+    var markers = new Array();
+    var clickCount = 0;
     map.on('click', function (e) {
         coords= e.latlng.lat + ", " + e.latlng.lng;
-        wayCoords.push([e.latlng.lat,e.latlng.lng])
+        wayCoords.push([e.latlng.lat,e.latlng.lng]);
         L.marker([e.latlng.lat,e.latlng.lng],
                 {
                     color:'red',
                     draggable: true
                 }).addTo(map);
-        console.log(coords);
+        if(clickCount == 0){
+          clickCount = clickCount + 1;
+          start = [e.latlng.lat,e.latlng.lng];
+        }
+        else {
+          clickCount = clickCount -1;
+          end = [e.latlng.lat,e.latlng.lng];
+          find_route(start,end,Areas,Type);
+        }
+        PlaceTo.Value = e.latlng.lat;
+        console.log(PlaceTo.Value);
     });
-    // create a red polyline from an array of LatLng points
-var latlngs = [
-    [45.51, -122.68],
-    [37.77, -122.43],
-    [34.04, -118.2]
-];
+
+    //ПОЧИНИТЕ
+    var heat = L.heatLayer([
+                                    [55.761761, 37.559460,1],
+                                    [55.759846, 37.581631,9],
+                                    [55.734856, 37.560484,5],
+                                    [55.627320, 37.616016,4],
+                                    [55.710334, 37.727268,7],
+                                    [55.772072, 37.695061,2],
+                                    [55.712137, 37.545168,6],
+                                    [55.821132, 37.573039,5],
+                                    [55.821674, 37.607412,6],
+                                    [55.792680, 37.600524,2],
+                                    [55.754743, 37.629907,3],
+                                    [55.754743, 37.629907,4],
+                                    [55.744083, 37.639188,10]],
+                                    {
+                                    radius: 50,
+                                    maxZoom:20,
+                                    minOpacity: 0.8,
+                                    gradient: {0.2: 'green', 0.7: 'yellow', 0.9: 'red'}
+                                    }).addTo(map);
+
+                map.addLayer(heat);
 
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-find_route(37.624953, 55.747503,37.613367,55.762002,'37.62422561645508,55.751052373460865','Foot');
+//find_route([37.624953, 55.747503],[37.613367,55.762002],'37.62422561645508,55.751052373460865','Foot');
 // zoom the map to the polyline
 
 
-function find_route(lat1,alt1,lat2,alt2,block,vehicleType) {
+function find_route(LatALt1,LatALt2,block,vehicleType) {
     var ghRouting = new GraphHopper.Routing({
     key: "e02478ff-9b90-4aca-b32b-33b8b97ab003",
     vehicle: vehicleType,
@@ -192,9 +210,9 @@ function find_route(lat1,alt1,lat2,alt2,block,vehicleType) {
     //var ghRouting = new GraphHopperRouting({key: defaultKey, host: host, vehicle: profile, elevation: false});
 
     // Setup your own Points
-    ghRouting.addPoint(new GHInput( lat1, alt1));
-    ghRouting.addPoint(new GHInput( lat2, alt2));
-
+    ghRouting.addPoint(new GHInput( LatALt1[1],LatALt1[0]));
+    ghRouting.addPoint(new GHInput( LatALt2[1], LatALt2[0]));
+      console.log(block)
     ghRouting.doRequest({ch: {disable: true}, block_area: block})
     .then(function(json){
        // Add your own result handling here
