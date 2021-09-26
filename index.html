@@ -23,8 +23,10 @@
   position: absolute;
   top: 5%;
   left: 5%;
-    z-index: 9999999;
+    z-index: 0;
+    visibility: hidden;
 }
+
             #map
             {
                 width:100%;
@@ -34,6 +36,7 @@
   font-family: 'Roboto', sans-serif;
   color: rgba(0,0,0,.87);
   padding: 20px 35px;
+ 
 }
 span.credits {
     background: url(https://songhay.blob.core.windows.net/shared-styles-svg/akyinkyin.svg) no-repeat top left;
@@ -112,7 +115,7 @@ button:hover {
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/graphhopper-js-api-client/dist/graphhopper-client.js"></script>
-<script src ="leaflet-heat.js" ></script>
+
 
 
 </script>
@@ -129,7 +132,7 @@ button:hover {
     osm.addTo(map);
     start = [0,0];
     end = [0,0];
-    Areas = '37.559460,55.761761,50; 37.581631,55.759846,50; 37.560484,55.734856,50; 37.616016, 55.627320,50; 37.727268, 55.710334,50; 37.695061, 55.772072,50; 37.545168, 55.712137,50; 37.573039,55.821132,50; 37.607412,55.821674,50; 37.600524,55.792680,50; 37.629907,55.754743,50; 37.639188,55.744083,50';
+    Areas = '55.761761,37.559460,200;55.759846,37.581631,200;55.734856,37.560484,200;55.627320,37.616016,200;55.710334,37.727268,200;55.772072,37.6925061,200;55.712137,37.545168,200;55.821132,37.573039,200;55.821674,37.607412,200;55.792680,37.600524,200;55.754743,37.629907,200;55.744083,37.639188,200';
     //Areas = "37.559460,55.761761,10;"
     Type = 'Foot';
 
@@ -172,9 +175,7 @@ button:hover {
         console.log(PlaceTo.Value);
     });
 
-    //ПОЧИНИТЕ
-    var heat = L.heatLayer([
-                                    [55.761761, 37.559460,1],
+    var boxesArray=[[55.761761, 37.559460,1],
                                     [55.759846, 37.581631,9],
                                     [55.734856, 37.560484,5],
                                     [55.627320, 37.616016,4],
@@ -186,15 +187,27 @@ button:hover {
                                     [55.792680, 37.600524,2],
                                     [55.754743, 37.629907,3],
                                     [55.754743, 37.629907,4],
-                                    [55.744083, 37.639188,10]],
-                                    {
-                                    radius: 25,
-                                    maxZoom:20,
-                                    minOpacity: 0.8,
-                                    gradient: {0.2: 'green', 0.7: 'yellow', 0.9: 'red'}
-                                    }).addTo(map);
-
-                map.addLayer(heat);
+                                    [55.744083, 37.639188,10]];
+    var rad;
+    var colour;
+    for(let i=0;i<boxesArray.length;i++)
+    {
+        if(boxesArray[i][2]>7)
+        {
+            colour=['red','#f03'];
+            radiuse = 200;
+        }
+        else if(boxesArray[i][2]>4)
+        {
+            colour=['yellow','#ffff00']
+            radiuse = 300;
+        }
+        else{
+            colour=['green','#77ec03']
+            radiuse = 400; 
+        }
+        var circle =L.circle([boxesArray[i][0],boxesArray[i][1]], {radius: radiuse,color:colour[0],fillColor:colour[1]}).addTo(map);
+    }
 
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 //find_route([37.624953, 55.747503],[37.613367,55.762002],'37.62422561645508,55.751052373460865','Foot');
@@ -213,7 +226,7 @@ function find_route(LatALt1,LatALt2,block,vehicleType) {
     // Setup your own Points
     ghRouting.addPoint(new GHInput(LatALt1[0],LatALt1[1]));
     ghRouting.addPoint(new GHInput(LatALt2[0], LatALt2[1]));
-      console.log(block)
+    console.log(block)
     ghRouting.doRequest({ch: {disable: true}, block_area: block})
     .then(function(json){
        // Add your own result handling here
